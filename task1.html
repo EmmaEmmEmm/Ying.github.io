@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    table, th, td {
+      border: 1px solid black;
+    }
+    table {
+      width: 500px;
+      height: 200px;
+      background-color: rgb(255, 255, 169);
+    }
+    th {
+      color: aliceblue;
+      background-color: rgb(33, 95, 153);
+    }
+    .ChangeColor button {
+      width: 100px;
+      height: 30px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <table class="table">
+    <tr>
+      <th>English</th>
+      <th>Math</th>
+      <th>Chinese</th>
+    </tr>
+    <tr>
+      <td>60</td>
+      <td>50</td>
+      <td>85</td>
+    </tr>
+    <tr>
+      <td>84</td>
+      <td>54</td>
+      <td>65</td>
+    </tr>
+  </table>
+
+  <div class="ChangeTable">
+    <p>Change The Table Width</p>
+    <button class="width" value="200">200px</button>
+    <button class="width" value="500">500px</button>
+  </div>
+
+  <div class="ChangeBorder">
+    <p>Change The Border and Cell Spacing</p>
+    <button class="border" value="1">1px</button>
+    <button class="border" value="10">10px</button>
+    <button class="border" value="20">20px</button>
+  </div>
+
+  <div class="ChangeColor">
+    <p>Change The Table Color</p>
+    <button class="color" value="rgb(155, 224, 155)" style="background-color: rgb(155, 224, 155);"></button>
+    <button class="color" value="rgb(155, 216, 224)" style="background-color: rgb(155, 216, 224);"></button>
+    <button class="color" value="rgb(191, 155, 224)" style="background-color: rgb(191, 155, 224);"></button>
+    <button class="color" value="rgb(224, 211, 155)" style="background-color: rgb(224, 211, 155);"></button>
+  </div>
+
+  <button id="resetBtn">Reset</button>
+
+  <script>
+    const table = document.querySelector('.table');
+    const widthBtns = document.querySelectorAll('.width');
+    const Borders = document.querySelectorAll('.border');
+    const Colors = document.querySelectorAll('.color');
+    const resetBtn = document.getElementById('resetBtn');
+
+    // Change table width
+    widthBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        table.style.width = `${btn.value}px`;
+      });
+    });
+
+    // Change padding (applies to each cell)
+    Borders.forEach(btn => {
+      btn.addEventListener('click', () => {
+        table.style.padding = `${btn.value}px`
+      });
+    });
+
+    // Change background color
+    Colors.forEach(btn => {
+      btn.addEventListener('click', () => {
+        table.style.backgroundColor = btn.value;
+      });
+    });
+
+    // Reset button
+    resetBtn.addEventListener('click', () => {
+      table.removeAttribute('style');
+      document.querySelectorAll('td, th').forEach(cell => cell.removeAttribute('style'));
+    });
+  </script>
+</body>
+</html>

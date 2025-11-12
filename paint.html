@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body,html{
+            height: 600px;
+            margin: 0;
+
+             background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <p>請在長按滑鼠在畫紙作畫</p>
+    <canvas></canvas>
+    <script>
+        let canvas = document.querySelector('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = 550;
+
+        let lastX = 0;
+        let lastY = 0;
+
+        canvas.addEventListener('mousedown', function(e){
+            lastX = e.offsetX;
+            lastY = e.offsetY;
+
+            canvas.addEventListener('mousemove',draw);
+        })
+        canvas.addEventListener('mouseup',function(){
+            canvas.removeEventListener('mousemove',draw);
+        })
+        canvas.addEventListener('mouseleave',function(){
+            canvas.removeEventListener('mousemove',draw);
+        })
+        //線粗度
+        let width = 100;
+        //改變的值
+        let widthVelocity = 1;
+
+        let hue = 200;
+        function draw(e) {
+            ctx.lineWidth = width;
+            ctx.strokeStyle = `hsl(${hue}, 100%, 80%)`;
+
+            // 開啟繪圖
+            ctx.beginPath();
+            // 移動畫筆
+            ctx.moveTo(lastX, lastY);
+            // 畫出線條
+            ctx.lineTo(e.x, e.y);
+            // 畫出邊框
+            ctx.stroke();
+
+            //紀錄最後座標
+            lastX = e.x;
+            lastY = e.y;
+
+            // 改變顏色
+            if (hue >= 360) {
+                hue = 0;
+            } else if (hue > -1) {
+                hue++;
+            }
+            
+            // 改變粗細
+            if (width <= 1 || width > 100) {
+                widthVelocity = -widthVelocity;
+            }
+            width += widthVelocity;
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+        }
+    </script>
+</body>
+</html>

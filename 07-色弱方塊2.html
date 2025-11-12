@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+        }
+
+        .all {
+            width: 100%;
+            height: 100%;
+
+            background-color: rgb(224, 224, 243);
+            font-size: 20px;
+        }
+
+        .start {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex-direction: column;
+
+            height: 100%;
+        }
+
+        .start-font {
+            width: 100%;
+
+            margin-bottom: 48px;
+
+            font-size: 50px;
+            font-weight: bolder;
+            text-align: center;
+        }
+
+        .start-button {
+            width: 200px;
+            height: 100px;
+
+            margin: 0 auto;
+
+            font-size: 50px;
+        }
+
+        .playing {
+            display: flex;
+            flex-direction: column;
+
+            height: 100%;
+        }
+
+        .click-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            align-items: center;
+
+            width: 600px;
+            height: 600px;
+
+            margin: auto;
+            padding: 10px;
+            background-color: white;
+            box-sizing: border-box;
+        }
+
+        .click {
+            /* width: 48%;
+            height: 48%; */
+            background-color: rgb(87, 162, 197);
+            box-sizing: border-box;
+        }
+        .nav{
+            display: flex;
+            justify-content: center;
+
+            width: 100%;
+            height: 100px;
+        }
+        .grade{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+            width: 200px;
+            height: 100%;
+
+            margin: 0 10px;
+
+            font-size: 50px;
+            font-weight: bolder;
+        }
+        p{
+            margin: 0 5px;
+        }
+        .time {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            width: 200px;
+            height: 100px;
+
+            font-size: 50px;
+            font-weight: bolder;
+            margin: 0 10px;
+        }
+        .ending{
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+
+            height: 100%;
+        }
+        .reset-font{
+            display: flex;
+            justify-content: center;
+
+            width: 100%;
+
+            margin-bottom: 48px;
+
+            font-size: 50px;
+            font-weight: bolder;
+            text-align: center;
+        }
+        .reset-p{
+            width: 150px;
+            height: 70px;
+
+            margin: 0;
+        }
+        .total{
+            display: flex;
+            align-items: center;
+
+            margin: 0;
+        }
+        .reset-button{
+            width: 200px;
+            height: 100px;
+            
+            margin: 0 auto;
+
+            font-size: 50px;
+        }
+        .unactive {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="all">
+        <div class="start">
+            <span class="start-font">色弱遊戲</span>
+            <button class="start-button">start!!!</button>
+        </div>
+        <div class="playing unactive">
+            <div class="nav">
+                <div class="grade">
+                    <p>分數 :</p>
+                    <p class="grade-p"></p>
+                </div>
+                <div class="time">
+                    <p>秒數 :</p>
+                    <p class="time-p">60</p>
+                </div>
+            </div>
+            <div class="click-area"></div>
+        </div>
+        <div class="ending unactive">
+            <span class="reset-font">
+                <p class="reset-p">總分</p>
+                <p class="total"></p>
+            </span>
+            <button class="reset-button">reset</button>
+        </div>
+    </div>
+    <script>
+        //抓取開始介面
+        const start = document.querySelector('.start');
+        //抓取開始按鈕
+        const startButton = document.querySelector('.start-button');
+        //抓取遊戲介面
+        const playing = document.querySelector('.playing');
+        //抓取放方塊的地方
+        const clickArea = document.querySelector('.click-area');
+        const gradeDiv = document.querySelector('.grade-p');
+        const timer = document.querySelector('.time-p');
+        // let opacity = document.querySelector('.opacity');
+
+        const ending = document.querySelector('.ending');
+        const total = document.querySelector('.total');
+        const reset = document.querySelector('.reset-button');
+
+        //分數
+        let grade = 0;
+        function createblock(num){
+            //清空方塊
+            clickArea.innerHTML = '';
+
+            area = num*100;
+            clickArea.style.width = `${area}px`;
+            clickArea.style.height = `${area}px`;
+
+            w = 93/num;
+            for (let i = 0; i < num * num; i++) {
+                clickArea.innerHTML += '<div class="click" style="width: ' + w + '%;height:' + w + '%;"></div>';
+            }
+            //隨機答案
+            randomAnswer = Math.floor(Math.random() * (num * num));
+        }
+
+        function opacity(x){
+            answer = x*0.1;
+            return answer;
+        }
+        function random() {
+            gradeDiv.innerHTML = grade;
+            if(grade > 17){
+                createblock(9);
+                opacity(9);
+            }else if(grade > 15){
+                createblock(8);
+                opacity(8);
+            }else if(grade > 12){
+                createblock(7);
+                opacity(7);
+            }else if(grade > 8){
+                createblock(6);
+                opacity(6);
+            }else if(grade > 6){
+                createblock(5);
+                opacity(5);
+            }else if (grade > 3) {
+                createblock(4);
+                opacity(4);
+            }else if(grade > 1){
+                createblock(3);
+                opacity(3);
+            }else{
+                createblock(2);
+                opacity(2);
+            }
+            //選取所有按的方塊
+            let click = document.querySelectorAll('.click');
+
+            // 套新答案
+            click[randomAnswer].style.opacity = `${answer}`;
+            
+            //隨機顏色
+            r = Math.floor(Math.random() * 255);
+            g = Math.floor(Math.random() * 255);
+            b = Math.floor(Math.random() * 255);
+            
+            click.forEach((clickOne, index) => {
+                //套顏色
+                clickOne.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+
+                clickOne.addEventListener('click', function () {
+                    //如果按到對的
+                    if (index == randomAnswer) {
+                        grade = grade + 1;
+                        
+                        // click[randomAnswer].style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                        //清當前答案
+                        click[randomAnswer].style.opacity = '1';
+                        random()
+                    }else{
+                        random()
+                    }
+                })
+            })
+        }
+        startButton.addEventListener('click', ()=>{
+            grade = 0
+            ending.classList.add('unactive');
+            playing.classList.remove('unactive');
+            start.classList.add('unactive');
+            random();
+
+            timer.innerHTML = '60';  
+            timeset()
+        })
+        function timeset(){
+            let time = 60;
+            const timeSet = setInterval(()=>{
+                time = time - 1;
+                console.log(time);
+                if(time < 0){
+                    time = 0;
+                    playing.classList.add('unactive');
+                    ending.classList.remove('unactive');
+                    total.innerHTML = grade;
+                    
+                    clearInterval(timeSet);
+                }
+                timer.innerHTML = time;            
+            },1000);
+        }
+        reset.addEventListener('click', ()=>{
+            ending.classList.add('unactive');
+            playing.classList.add('unactive');
+            start.classList.remove('unactive');
+        })
+    </script>
+</body>
+
+</html>

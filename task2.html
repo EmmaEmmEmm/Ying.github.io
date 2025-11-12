@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            margin: 0;
+
+            display: flex;
+            justify-content: center;
+
+        }
+        .conner{
+            display: flex;
+            flex-flow: column;
+            align-items: center;
+        }
+        button{
+            width: 50px;
+            height: 30px;
+            border: 0;
+            background-color: rgb(41, 41, 41);
+            color: white;
+            border-radius: 10px;
+        }
+        .picture{
+            background-color: aliceblue;
+            border: 2px solid rgb(144, 117, 198);
+            padding: 10px 10px 50px 10px;
+            margin-bottom: 20px;
+
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="conner">
+        <h1>Pictures of Today</h1>
+        <div class="picture">
+            <img class="img" src="./img/01.jpg" alt="">
+        </div>
+        <div class="function">
+            <button class="prev">Prev</button>
+            <i>image <i class="text">1</i> of 5</i>
+            <button class="next">Next</button>
+        </div>
+    </div>
+    <script>
+        const text = document.querySelector('.text');
+        const img = document.querySelector('.img')
+        const prev = document.querySelector('.prev')
+        const next = document.querySelector('.next')
+
+        var i = 1
+        prev.addEventListener('click', ()=>{
+            console.log(1);
+            
+            if (i > 1){
+                i --;
+            }
+            text.innerHTML = `${i}`
+            img.src = `./img/0${i}.jpg`
+        })
+        next.addEventListener('click', ()=>{
+            if (i < 5){
+                i = i+ 1;
+            }
+            text.innerHTML = `${i}`
+            img.src = `./img/0${i}.jpg`
+        })
+    </script>
+</body>
+</html>

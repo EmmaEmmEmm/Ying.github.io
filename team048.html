@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body{
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            margin: 0;
+        }
+        header{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        header > *{
+            margin: 10px;
+        }
+        .towers{
+            user-select: none;
+            width: 80%;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .tower{
+            user-select: none;
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: end;
+            width: 20px;
+            background: rgba(147, 105, 46, 0.875);
+            border-radius: 8px;
+            padding: 10px 0;
+        }
+         .row{
+            width: var(--w);
+            height: 25px;
+            border-radius: 10px;
+            margin: 3px;
+         }
+         .row0{
+            background: rgb(221, 118, 118);
+         }
+         .row1{
+            background: rgb(221, 163, 118);
+         }
+         .row2{
+            background: rgb(221, 212, 118);
+         }
+         .row3{
+            background: rgb(125, 221, 118);
+         }
+         .row4{
+            background: rgb(118, 214, 221);
+         }
+         .row5{
+            background: rgb(118, 125, 221);
+         }
+         .row6{
+            background: rgb(185, 118, 221);
+         }
+         button{
+            width: 100px;
+            height: 30px;
+            background-color: rgb(29, 42, 147);
+            border:2px solid rgb(29, 42, 147);
+            color: white;
+            border-radius: 10px;
+         }
+         button:hover{
+            border:2px solid rgb(29, 42, 147);
+            background-color: rgb(248, 248, 248);
+            color: rgb(29, 42, 147);
+         }
+         select{
+            width: 50px;
+         }
+    </style>
+</head>
+<body>
+    <h1>河內塔遊戲</h1>
+    <header>
+        <div style="display: flex;align-items: center;">
+            <p>圓盤數量：</p>
+            <select id="num">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="5">5</option>
+                <option value="7">7</option>
+            </select>
+        </div>
+        <p id="move">移動次數: 0</p>
+        <p id="min">最少步數: 0</p>
+        <button onclick="startgame()">開始遊戲</button>
+    </header>
+    <div class="towers">
+        <div class="tower" id="A" onmousedown="down(0)" onmouseup="up(0)"></div>
+        <div class="tower" id="B" onmousedown="down(1)" onmouseup="up(1)"></div>
+        <div class="tower" id="C" onmousedown="down(2)" onmouseup="up(2)"></div>
+    </div>
+    <script>
+        array = [[],[],[]]
+        move = 0;
+        min = 0;
+        downrow = 0;
+        num = 0
+        
+        // 生成圓盤
+        const CreateRows = () => {
+            // 清空目前所有
+            let A = document.getElementById("A"), B = document.getElementById("B"), C = document.getElementById("C")
+            A.innerHTML = B.innerHTML = C.innerHTML = "";
+            // 針對每個柱子生成圓環
+            array[0].forEach(e => {
+                A.innerHTML += `<div class="row row${e}" style="--w:${100+e*50}px"></div>`
+            });
+            array[1].forEach(e => {
+                B.innerHTML += `<div class="row row${e}" style="--w:${100+e*50}px"></div>`
+            });
+            array[2].forEach(e => {
+                C.innerHTML += `<div class="row row${e}" style="--w:${100+e*50}px"></div>`
+            });
+            // 更新移動次數
+            document.getElementById("move").textContent = `移動次數：${move}`
+            // 判斷是否成功
+            if(array[2].length == num){
+                alert(`成功;最少步數:${min};你的步數:${move}`)
+                // startgame()
+            }
+        }
+        
+        // 偵測按下
+        const down = (n) => {
+            if(array[n][0] != undefined) downnum = n            
+        }
+
+        // 偵測放開
+        const up = (n) => {
+            // 防止小的放到大的上面
+            if(array[downnum][0] < array[n][0] || array[n][0] == undefined){
+                array[n].unshift(array[downnum][0])
+                array[downnum].shift()
+                move += 1
+            }
+            // 生成圓環
+            CreateRows()
+        }
+
+        // 初始化設定
+        const startgame = () => {
+            array = [[],[],[]]
+            move = 0;
+            num = document.getElementById("num").value;
+            document.getElementById("move").textContent = "移動次數：0"
+            min = 2**num - 1
+            document.getElementById("min").textContent = `最小步數：${min}`
+            // 將所有初始在第一個柱子
+            for(let i = 0; i < num; i++){
+                array[0].push(i)
+            }
+            CreateRows();
+        }
+    </script>
+</body>
+</html>

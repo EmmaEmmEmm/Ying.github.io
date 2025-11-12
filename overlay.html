@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+.container {
+  position: relative;
+  width: 250px;
+}
+
+.image {
+  display: block;
+  width: 250px;
+  height: 250px;
+  
+  border-radius: 50%;
+  border: 2px solid rgb(144, 117, 198);
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 250px;
+  width: 250px;
+  opacity: 0;
+  transition: .5s ease;
+}
+
+.container:hover .overlay {
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+
+<h2>Fade in Overlay</h2>
+<p>請將滑鼠移到小八頭像</p>
+
+<div class="container">
+  <img src="./img/images.jpg" alt="Avatar" class="image">
+  <div class="overlay">
+    <img class="image" src="./img/Untitled.png" alt="">
+  </div>
+</div>
+
+</body>
+</html>

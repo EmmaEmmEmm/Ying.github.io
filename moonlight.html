@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Moonlight City</title>
+  <style>
+    body {
+      margin: 0;
+    }
+    canvas {
+      border: 1px solid #222;
+    }
+  </style>
+</head>
+<body>
+  <p>這是moonlignt city</p>
+  <canvas id="cityCanvas" width="600" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("cityCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // 1. Sky background (linear gradient)
+    const skyGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    skyGradient.addColorStop(0, "#001a33"); // dark blue
+    skyGradient.addColorStop(1, "#000020"); // navy
+    ctx.fillStyle = skyGradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 2. Ground area
+    ctx.fillStyle = "#0a0a20";
+    ctx.fillRect(0, 320, canvas.width, 80);
+
+    // 3. Moon
+    const moonX = 500;
+    const moonY = 80;
+    const moonRadius = 40;
+    ctx.beginPath();
+    ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+    ctx.fillStyle = "#f5e6b3";
+    ctx.fill();
+    // Crescent effect
+    ctx.beginPath();
+    ctx.arc(moonX+10 , moonY, moonRadius, 0, Math.PI * 2);
+    ctx.fillStyle = "gray";
+    ctx.fill();
+
+
+
+    // 4. Buildings
+    const buildings = [
+      { x: 60,  y: 220, w: 70, h: 100, color: "#223355" },
+      { x: 150, y: 180, w: 60, h: 140, color: "#2c3e60" },
+      { x: 230, y: 200, w: 80, h: 120, color: "#2b4b7a" },
+      { x: 340, y: 170, w: 70, h: 150, color: "#334e7a" },
+      { x: 430, y: 210, w: 60, h: 110, color: "#2a3d66" },
+    ];
+
+    buildings.forEach(b => {
+      ctx.fillStyle = b.color;
+      ctx.fillRect(b.x, b.y, b.w, b.h);
+    });
+
+    // 5. Windows (small yellow rectangles)
+    ctx.fillStyle = "#ffd966";
+    const windows = [
+      { x: 80, y: 240, w: 10, h: 10 },
+      { x: 180, y: 200, w: 10, h: 10 },
+      { x: 255, y: 230, w: 10, h: 10 },
+      { x: 360, y: 190, w: 10, h: 10 },
+      { x: 460, y: 250, w: 10, h: 10 },
+    ];
+    windows.forEach(win => ctx.fillRect(win.x, win.y, win.w, win.h));
+
+    // 6. Stars
+    ctx.fillStyle = "white";
+    for (let i = 0; i < 30; i++) {
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * 200;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // 7. Title text
+    ctx.fillStyle = "white";
+    ctx.font = "bold 20px Arial";
+    ctx.fillText("MOONLIGHT CITY", 20, 40);
+    ctx.font = "14px Arial";
+    ctx.fillText("Canvas 2D · City Skyline", 20, 60);
+  </script>
+</body>
+</html>
