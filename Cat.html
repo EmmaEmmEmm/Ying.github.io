@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Click to Place Red Dot</title>
+<style>
+  canvas { border:1px solid #aaa; }
+</style>
+</head>
+<body>
+
+<canvas id="cv" width="600" height="300"></canvas>
+
+<script>
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+
+cv.addEventListener("click", e=>{
+  const rect = cv.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc(x, y, 3, 0, Math.PI*2);
+  ctx.fill();
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>銀河衛士 - Galaxy Defender (Final)</title>
+    <style>
+        body {
+            background-color: #0d0d0d;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden; /* 防止滾動條 */
+        }
+
+        h1 { 
+            margin-bottom: 10px; 
+            text-shadow: 0 0 10px #00d2ff;
+        }
+
+        #game-container {
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
+
+        canvas {
+            background-color: #000;
+            display: block;
+        }
+
+        .ui-panel {
+            margin-top: 15px;
+            text-align: center;
+            width: 800px;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(to bottom, #333, #222);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            border: 1px solid #444;
+        }
+
+        .stat-item span {
+            color: #00d2ff;
+        }
+
+        button {
+            background: linear-gradient(to bottom, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            margin: 0 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #004494;
+            transition: transform 0.1s;
+        }
+
+        button:active { 
+            transform: translateY(4px); 
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🚀 Galaxy Defender</h1>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <div class="ui-panel">
+        <div class="info-bar">
+            <div class="stat-item">狀態: <span id="stateDisplay">READY</span></div>
+            <div class="stat-item">分數: <span id="scoreVal">0</span></div>
+            <div class="stat-item">生命: <span id="livesVal">3</span></div>
+            <div class="stat-item">速度: x<span id="speedVal">1.0</span></div>
+        </div>
+        <div class="controls">
+            <button onclick="startGame()">開始 (Start)</button>
+            <button onclick="togglePause()">暫停 (Pause)</button>
+            <button onclick="resetGame()">重置 (Reset)</button>
+            <button onclick="changeSpeed(0.1)">加速 (+)</button>
+            <button onclick="changeSpeed(-0.1)">減速 (-)</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. 遊戲配置 ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const STATE = { OPENING: 0, READY: 1, PLAYING: 2, PAUSED: 3, GAMEOVER: 4 };
+
+        let currentState = STATE.OPENING;
+        let score = 0;
+        let lives = 3;
+        let speedMultiplier = 1.0;
+        let frameCount = 0;
+        
+        const keys = { ArrowLeft: false, ArrowRight: false, Space: false };
+
+        let bullets = [];
+        let meteors = [];
+        let particles = [];
+
+        // --- 2. 類別定義 ---
+
+        // 玩家飛船 (自訂設計)
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 60,
+            width: 44,
+            height: 44,
+            speed: 6,
+            
+            draw: function() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // 1. 機翼 (深藍色)
+                ctx.fillStyle = '#0056b3';
+                ctx.beginPath();
+                ctx.moveTo(0, -25);
+                ctx.lineTo(25, 20);
+                ctx.lineTo(0, 10); // 尾部內凹
+                ctx.lineTo(-25, 20);
+                ctx.closePath();
+                ctx.fill();
+
+                // 2. 機身核心 (亮藍色)
+                ctx.fillStyle = '#00d2ff';
+                ctx.beginPath();
+                ctx.moveTo(0, -25);
+                ctx.lineTo(8, 15);
+                ctx.lineTo(-8, 15);
+                ctx.fill();
+
+                // 3. 駕駛艙 (白色光澤)
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.ellipse(0, -5, 4, 8, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // 4. 引擎火焰 (動態)
+                if (currentState === STATE.PLAYING) {
+                    ctx.fillStyle = `rgba(255, 100, 0, ${0.5 + Math.random()*0.5})`;
+                    ctx.beginPath();
+                    ctx.moveTo(-6, 15);
+                    ctx.lineTo(0, 35 + Math.random() * 10); // 火焰隨機長度
+                    ctx.lineTo(6, 15);
+                    ctx.fill();
+                }
+                ctx.restore();
+            },
+            
+            update: function() {
+                if (keys.ArrowLeft && this.x > 25) this.x -= this.speed;
+                if (keys.ArrowRight && this.x < canvas.width - 25) this.x += this.speed;
+            }
+        };
+
+        // 子彈類 (升級版：支援斜向飛行)
+        class Bullet {
+            constructor(x, y, vx = 0) { // vx 是水平速度
+                this.x = x;
+                this.y = y;
+                this.vx = vx; 
+                this.radius = 4;
+                this.speed = 8;
+            }
+            update() { 
+                this.y -= this.speed; 
+                this.x += this.vx; // 讓子彈可以斜著飛
+            }
+            draw() {
+                ctx.fillStyle = '#fff700'; // 亮黃色
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#fff700';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; // 重置陰影
+            }
+        }
+
+        // 隕石類 (包含兩種設計)
+        class Meteor {
+            constructor() {
+                this.radius = 15 + Math.random() * 25;
+                this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+                this.y = -50;
+                this.speed = (1.5 + Math.random() * 2) * speedMultiplier;
+                this.rotation = 0;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.1;
+                
+                // 決定類型：岩石 或 外星人
+                this.type = Math.random() > 0.6 ? 'alien' : 'rock'; 
+            }
+            update() { 
+                this.y += this.speed; 
+                this.rotation += this.rotationSpeed;
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+
+                if (this.type === 'rock') {
+                    // 設計 1: 岩石 (灰色多邊形)
+                    ctx.fillStyle = '#888';
+                    ctx.beginPath();
+                    // 畫一個不規則的圓形
+                    for(let i=0; i<7; i++) {
+                        let angle = (i / 7) * Math.PI * 2;
+                        let r = this.radius * (0.8 + Math.random()*0.2); // 輕微抖動產生岩石感
+                        ctx.lineTo(Math.cos(angle)*r, Math.sin(angle)*r);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    // 坑洞細節
+                    ctx.fillStyle = '#555';
+                    ctx.beginPath();
+                    ctx.arc(this.radius*0.3, -this.radius*0.2, this.radius*0.2, 0, Math.PI*2);
+                    ctx.fill();
+
+                } else {
+                    // 設計 2: 外星方塊 (綠色發光)
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#0f0';
+                    ctx.fillStyle = '#0f0';
+                    ctx.fillRect(-this.radius, -this.radius, this.radius*2, this.radius*2);
+                    
+                    // 外星眼睛
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(-this.radius*0.5, -this.radius*0.3, this.radius*0.4, this.radius*0.4);
+                    ctx.fillRect(this.radius*0.1, -this.radius*0.3, this.radius*0.4, this.radius*0.4);
+                }
+                ctx.restore();
+            }
+        }
+
+        // 粒子系統 (爆炸特效)
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                let angle = Math.random() * Math.PI * 2;
+                let speed = Math.random() * 4;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.life = 1.0;
+                this.color = color;
+                this.decay = 0.02 + Math.random() * 0.03;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life -= this.decay;
+            }
+            draw() {
+                ctx.globalAlpha = Math.max(0, this.life);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+        }
+
+        // --- 3. 事件監聽 (包含創意玩法觸發) ---
+        window.addEventListener('keydown', e => {
+            if (e.code === 'ArrowLeft') keys.ArrowLeft = true;
+            if (e.code === 'ArrowRight') keys.ArrowRight = true;
+            
+            // 射擊邏輯
+            if (e.code === 'Space') {
+                if (currentState === STATE.PLAYING) {
+                    
+                    // === 【創意玩法：火力升級系統】 ===
+                    // 說明：分數 >= 50 分，發射三向散射子彈
+                    if (score >= 50) {
+                        bullets.push(new Bullet(player.x, player.y - 20, 0));  // 中間
+                        bullets.push(new Bullet(player.x, player.y - 20, -2)); // 向左斜飛
+                        bullets.push(new Bullet(player.x, player.y - 20, 2));  // 向右斜飛
+                    } else {
+                        // 普通單發
+                        bullets.push(new Bullet(player.x, player.y - 20, 0));
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('keyup', e => {
+            if (e.code === 'ArrowLeft') keys.ArrowLeft = false;
+            if (e.code === 'ArrowRight') keys.ArrowRight = false;
+        });
+
+        // --- 4. 遊戲核心循環 ---
+
+        function init() {
+            setTimeout(() => {
+                if(currentState === STATE.OPENING) currentState = STATE.READY;
+                updateUI();
+            }, 3000); 
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStarfield(); 
+
+            frameCount++;
+
+            switch (currentState) {
+                case STATE.OPENING:
+                    drawOpening();
+                    break;
+                case STATE.READY:
+                    player.draw();
+                    drawText("按 START 開始遊戲", "30px Arial", "#fff", 0);
+                    drawText("達到 50 分解鎖最強武器！", "16px Arial", "#00d2ff", 40);
+                    break;
+                case STATE.PLAYING:
+                    updateLogic();
+                    drawObjects();
+                    break;
+                case STATE.PAUSED:
+                    drawObjects();
+                    drawText("PAUSED", "50px Arial", "yellow", 0);
+                    break;
+                case STATE.GAMEOVER:
+                    drawObjects();
+                    drawText("GAME OVER", "60px Arial", "#ff3333", -20);
+                    drawText(`最終得分: ${score}`, "24px Arial", "#fff", 40);
+                    break;
+            }
+            
+            updateUI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function updateLogic() {
+            player.update();
+
+            // 難度控制：分數越高，隕石生成越快
+            let currentSpawnRate = Math.max(15, 80 - Math.floor(score/2)); 
+            if (frameCount % currentSpawnRate === 0) {
+                meteors.push(new Meteor());
+            }
+
+            // 更新子彈
+            bullets.forEach((b, i) => {
+                b.update();
+                if (b.y < 0 || b.x < 0 || b.x > canvas.width) bullets.splice(i, 1);
+            });
+
+            // 更新隕石與碰撞
+            meteors.forEach((m, mIndex) => {
+                m.update();
+
+                // 撞到底部
+                if (m.y > canvas.height) {
+                    meteors.splice(mIndex, 1);
+                    loseLife();
+                }
+
+                // 撞到飛船
+                const distPlayer = Math.hypot(player.x - m.x, player.y - m.y);
+                if (distPlayer < player.width/2 + m.radius) {
+                    createExplosion(player.x, player.y, '#ff3333');
+                    meteors.splice(mIndex, 1);
+                    loseLife();
+                }
+
+                // 子彈擊中隕石
+                bullets.forEach((b, bIndex) => {
+                    const distBullet = Math.hypot(b.x - m.x, b.y - m.y);
+                    if (distBullet < m.radius + b.radius) {
+                        // 爆炸特效顏色根據敵人改變
+                        let exploColor = m.type === 'rock' ? '#aaaaaa' : '#00ff00';
+                        createExplosion(m.x, m.y, exploColor);
+                        
+                        meteors.splice(mIndex, 1);
+                        bullets.splice(bIndex, 1);
+                        score += 10;
+                    }
+                });
+            });
+
+            // 更新粒子
+            particles.forEach((p, i) => {
+                p.update();
+                if (p.life <= 0) particles.splice(i, 1);
+            });
+
+            if (lives <= 0) currentState = STATE.GAMEOVER;
+        }
+
+        function drawObjects() {
+            player.draw();
+            bullets.forEach(b => b.draw());
+            meteors.forEach(m => m.draw());
+            particles.forEach(p => p.draw());
+        }
+
+        // --- 5. 視覺特效 ---
+
+        function drawStarfield() {
+            // 背景黑
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 星星
+            ctx.fillStyle = '#fff';
+            for(let i=0; i<60; i++) {
+                // 讓星星隨時間緩慢移動，產生視差感
+                let x = (i * 113 + frameCount * 0.2) % canvas.width;
+                let y = (i * 227 + frameCount * 0.5) % canvas.height;
+                let size = (i % 3) + 1;
+                ctx.globalAlpha = 0.5 + Math.sin(frameCount * 0.05 + i)*0.4; // 閃爍
+                ctx.fillRect(x, y, size, size);
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        function drawOpening() {
+            let scale = 1 + Math.sin(frameCount * 0.04) * 0.2;
+            let alpha = Math.min(1, frameCount / 60);
+
+            ctx.save();
+            ctx.translate(canvas.width/2, canvas.height/2);
+            ctx.scale(scale, scale);
+            ctx.globalAlpha = alpha;
+            
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = "#00d2ff";
+            ctx.fillStyle = "#fff";
+            ctx.font = "bold 50px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("GALAXY DEFENDER", 0, 0);
+            
+            ctx.font = "20px Arial";
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = "#aaa";
+            ctx.fillText("System Initializing...", 0, 50);
+            
+            ctx.restore();
+        }
+
+        function createExplosion(x, y, color) {
+            for(let i=0; i<15; i++) { // 15個粒子
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        function drawText(text, font, color, yOffset) {
+            ctx.fillStyle = color;
+            ctx.font = font;
+            ctx.textAlign = "center";
+            ctx.fillText(text, canvas.width/2, canvas.height/2 + yOffset);
+        }
+
+        // --- 6. 控制與重置 ---
+        function loseLife() {
+            lives--;
+            // 畫面震動效果 (簡單版)
+            canvas.style.transform = "translate(5px, 5px)";
+            setTimeout(() => canvas.style.transform = "translate(0, 0)", 50);
+        }
+
+        function startGame() {
+            if (currentState !== STATE.PLAYING) {
+                if(currentState === STATE.GAMEOVER || currentState === STATE.READY) resetGameVariables();
+                currentState = STATE.PLAYING;
+            }
+        }
+
+        function togglePause() {
+            if (currentState === STATE.PLAYING) currentState = STATE.PAUSED;
+            else if (currentState === STATE.PAUSED) currentState = STATE.PLAYING;
+        }
+
+        function resetGame() {
+            currentState = STATE.READY;
+            resetGameVariables();
+        }
+
+        function resetGameVariables() {
+            score = 0;
+            lives = 3;
+            bullets = [];
+            meteors = [];
+            particles = [];
+            player.x = canvas.width / 2;
+        }
+
+        function changeSpeed(delta) {
+            speedMultiplier = Math.max(0.5, Math.min(3.0, speedMultiplier + delta));
+        }
+
+        function updateUI() {
+            let stateText = Object.keys(STATE).find(key => STATE[key] === currentState);
+            document.getElementById('stateDisplay').innerText = stateText;
+            document.getElementById('scoreVal').innerText = score;
+            document.getElementById('livesVal').innerText = lives;
+            document.getElementById('speedVal').innerText = speedMultiplier.toFixed(1);
+        }
+
+        init();
+    </script>
+</body>
+</html>

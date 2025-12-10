@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Canvas Drag & Drop Image</title>
+<style>
+  canvas {
+    border: 1px solid #aaa;
+    background: #fff;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h3>拖曳圖片到 Canvas 上</h3>
+<canvas id="cv" width="600" height="400"></canvas>
+
+<script>
+const cv = document.getElementById("cv");
+const ctx = cv.getContext("2d");
+
+const stampImg = new Image();
+stampImg.src = "stamp.png"; // 請換成你的圖片路徑
+
+let dragging = false;
+let offsetX = 0;
+let offsetY = 0;
+
+// 圖片初始位置（Canvas 內）
+let imgX = 50;
+let imgY = 50;
+let imgWidth = 100;
+let imgHeight = 120;
+
+// 圖片載入後畫出初始位置
+stampImg.onload = () => {
+  ctx.drawImage(stampImg, imgX, imgY, imgWidth, imgHeight);
+};
+
+// 按下圖片開始拖曳
+cv.addEventListener("mousedown", e => {
+  const rect = cv.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  // 檢查是否點在圖片範圍內
+  if (x >= imgX && x <= imgX + imgWidth && y >= imgY && y <= imgY + imgHeight) {
+    dragging = true;
+    offsetX = x - imgX;
+    offsetY = y - imgY;
+  }
+});
+
+// 拖曳中更新圖片位置（限制在 Canvas 內）
+cv.addEventListener("mousemove", e => {
+  if (!dragging) return;
+  const rect = cv.getBoundingClientRect();
+  let x = e.clientX - rect.left - offsetX;
+  let y = e.clientY - rect.top - offsetY;
+
+  // 限制範圍
+  if (x < 0) x = 0;
+  if (y < 0) y = 0;
+  if (x + imgWidth > cv.width) x = cv.width - imgWidth;
+  if (y + imgHeight > cv.height) y = cv.height - imgHeight;
+
+  imgX = x;
+  imgY = y;
+
+  // 重新繪製 Canvas
+  ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.drawImage(stampImg, imgX, imgY, imgWidth, imgHeight);
+});
+
+// 放開滑鼠結束拖曳
+cv.addEventListener("mouseup", e => {
+  dragging = false;
+});
+cv.addEventListener("mouseleave", e => {
+  dragging = false;
+});
+</script>
+
+</body>
+</html>

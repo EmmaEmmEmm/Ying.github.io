@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>最新台灣威力彩開獎結果</title>
+    <style>
+        body { font-family: Arial; margin: 30px; }
+        .ball {
+            display: inline-block;
+            padding: 10px 15px;
+            margin: 5px;
+            background: orange;
+            color: white;
+            border-radius: 50%;
+            font-size: 24px;
+        }
+        .special {
+            background: red !important;
+        }
+    </style>
+</head>
+<body>
+
+<h1>最新威力彩開獎號碼</h1>
+
+<h2>大小順序（第一區）</h2>
+{% for b in main %}
+    <span class="ball">{{ b }}</span>
+{% endfor %}
+
+<h2>第二區（特別號）</h2>
+<span class="ball special">{{ special }}</span>
+
+</body>
+</html>
