@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Booking Search</title>
+</head>
+<body>
+
+<h2>Check Your Booking Status</h2>
+
+<form method="POST" action="/search_booking">
+    Enter Booking ID: <input type="text" name="booking_id" required>
+    <button type="submit">Search</button>
+</form>
+
+<hr>
+
+{% if result %}
+<h3>Booking Found:</h3>
+<p>Room Number: {{ result[0]}}</p>
+<p>Check-in: {{ result[1] }}</p>
+<p>Check-out: {{ result[2] }}</p>
+{% endif %}
+
+{% if not_found %}
+<h3 style="color:red;">Booking not found</h3>
+{% endif %}
+<form method="" action="/admin">
+    <button type="submit">Go Admin</button>
+</form>
+</body>
+</html>

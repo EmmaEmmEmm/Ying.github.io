@@ -1,306 +1,273 @@
-# Full implementation of HW4 polynomial linked-list operations
-
 import re
 
-class Node:
-    def __init__(self, c, exp):
-        self.coefficient = float(c)
-        self.exponential = int(exp)
-        self.next = None
+# =========================
+# Node class
+# =========================
+class Hnode:
+    def __init__(self, key, item):
+        self.key = key
+        self.item = item
+        self.parent = None
+        self.right = None
+        self.left = None
 
-    def getCoefficient(self):
-        return self.coefficient
+    def getKey(self):
+        return self.key
 
-    def getExponential(self):
-        return self.exponential
+    def getItem(self):
+        return self.item
 
-    def getNext(self):
-        return self.next
+    def getRightChild(self):
+        return self.right
 
-    def setData(self, c, exp):
-        self.coefficient = float(c)
-        self.exponential = int(exp)
+    def getLeftChild(self):
+        return self.left
 
-    def setCoefficient(self, c):
-        self.coefficient = float(c)
+    def getParent(self):
+        return self.parent
 
-    def setExponential(self, exp):
-        self.exponential = int(exp)
+    def hasRightChild(self):
+        return self.right is not None
 
-    def setNext(self, newnext):
-        self.next = newnext
+    def hasLeftChild(self):
+        return self.left is not None
+
+    def isRoot(self):
+        return self.parent is None
+
+    def isLeaf(self):
+        return self.left is None and self.right is None
+
+    def isRightChild(self):
+        return self.parent and self.parent.right == self
+
+    def isLeftChild(self):
+        return self.parent and self.parent.left == self
+
+    def setParent(self, p):
+        self.parent = p
+
+    def setKey(self, key):
+        self.key = key
+
+    def setItem(self, item):
+        self.item = item
+
+    def addRightChild(self, hnode):
+        self.right = hnode
+        hnode.setParent(self)
+
+    def addLeftChild(self, hnode):
+        self.left = hnode
+        hnode.setParent(self)
 
 
-class Poly_List:
+# =========================
+# Heap class
+# =========================
+class Heap:
     def __init__(self):
-        self.head = None
-        self.tail = None
+        self.root = None
+        self.last = None
+        self.size = 0
 
     def isEmpty(self):
-        return self.head is None
+        return self.size == 0
 
-    def size(self):
-        count = 0
-        cur = self.head
-        while cur:
-            count += 1
-            cur = cur.next
-        return count
+    def getSize(self):
+        return self.size
 
-    def isHead(self, node):
-        return node == self.head
+    def getRoot(self):
+        return self.root
 
-    def isTail(self, node):
-        return node == self.tail
+    def getLast(self):
+        return self.last
 
-    def getHead(self):
-        return self.head
+    def getHighestPriority(self):
+        if self.root is None:
+            return None
+        return self.root.getKey()
 
-    def getTail(self):
-        return self.tail
+    # -------------------------
+    # downwardHeapify
+    # -------------------------
+    def downwardHeapify(self, current):
+        while current.hasLeftChild():
+            small = current.getLeftChild()
 
-    def setHead(self, node):
-        self.head = node
+            if current.hasRightChild() and \
+               current.getRightChild().getKey() < small.getKey():
+                small = current.getRightChild()
 
-    def setTail(self, node):
-        self.tail = node
-
-    def polyDegree(self):
-        if self.isEmpty():
-            return -1
-        return self.head.exponential
-
-    def insertAfter(self, p, c, exp):
-        newNode = Node(c, exp)
-        newNode.next = p.next
-        p.next = newNode
-        if p == self.tail:
-            self.tail = newNode
-
-    def insertAtHead(self, c, exp):
-        newNode = Node(c, exp)
-        newNode.next = self.head
-        self.head = newNode
-        if self.tail is None:
-            self.tail = newNode
-
-    def insertAtTail(self, c, exp):
-        newNode = Node(c, exp)
-        if self.tail:
-            self.tail.next = newNode
-            self.tail = newNode
-        else:
-            self.head = self.tail = newNode
-
-    def deleteAtHead(self):
-        if self.head:
-            self.head = self.head.next
-            if self.head is None:
-                self.tail = None
-
-    def paddingPoly(self):
-        if self.isEmpty():
-            return
-        cur = self.head
-        while cur.next:
-            if cur.exponential - 1 != cur.next.exponential:
-                self.insertAfter(cur, 0, cur.exponential - 1)
-            cur = cur.next
-
-    def timeConst_liftDegree(self, m, d):
-        cur = self.head
-        while cur:
-            cur.coefficient *= m
-            cur.exponential += d
-            cur = cur.next
-
-    def copy(self):
-        newList = Poly_List()
-        cur = self.head
-        while cur:
-            newList.insertAtTail(cur.coefficient, cur.exponential)
-            cur = cur.next
-        return newList
-
-    def printPoly_List(self):
-        cur = self.head
-        while cur:
-            print(f"({cur.coefficient}, {cur.exponential}) -> ", end="")
-            cur = cur.next
-        print("None")
-
-    def printPolynomial(self):
-        if self.isEmpty():
-            print("0")
-            return
-        cur = self.head
-        out = ""
-        while cur:
-            c = cur.coefficient
-            e = cur.exponential
-            if c >= 0 and cur != self.head:
-                out += "+"
-            if e == 0:
-                out += f"{c}"
-            elif e == 1:
-                out += f"{c}x"
+            if small.getKey() < current.getKey():
+                current.key, small.key = small.key, current.key
+                current.item, small.item = small.item, current.item
+                current = small
             else:
-                out += f"{c}x^{e}"
-            cur = cur.next
-        print(out)
+                break
+
+    # -------------------------
+    # upwardHeapify
+    # -------------------------
+    def upwardHeapify(self, current):
+        while not current.isRoot():
+            parent = current.getParent()
+            if current.getKey() < parent.getKey():
+                current.key, parent.key = parent.key, current.key
+                current.item, parent.item = parent.item, current.item
+                current = parent
+            else:
+                break
+
+    # -------------------------
+    # removeMin
+    # -------------------------
+    def removeMin(self):
+        if self.isEmpty():
+            print("The heap is empty and no entry can be removed")
+            return None
+
+        if self.size == 1:
+            self.root = None
+            self.last = None
+            self.size = 0
+            return
+
+        # swap root and last
+        self.root.key, self.last.key = self.last.key, self.root.key
+        self.root.item, self.last.item = self.last.item, self.root.item
+
+        # remove last node
+        parent = self.last.getParent()
+        if self.last.isLeftChild():
+            parent.left = None
+        else:
+            parent.right = None
+
+        self.size -= 1
+
+        # update last
+        bits = list(d2by(self.size))
+        bits.reverse()
+        cur = self.root
+        for b in bits[1:]:
+            if b == 0:
+                cur = cur.left
+            else:
+                cur = cur.right
+        self.last = cur
+
+        self.downwardHeapify(self.root)
+
+    # -------------------------
+    # Insert
+    # -------------------------
+    def Insert(self, hnode):
+        if self.isEmpty():
+            self.root = hnode
+            self.last = hnode
+            self.size = 1
+            return
+
+        self.size += 1
+        bits = list(d2by(self.size))
+        bits.reverse()
+
+        cur = self.root
+        for b in bits[1:-1]:
+            if b == 0:
+                cur = cur.left
+            else:
+                cur = cur.right
+
+        if bits[-1] == 0:
+            cur.addLeftChild(hnode)
+        else:
+            cur.addRightChild(hnode)
+
+        self.last = hnode
+        self.upwardHeapify(hnode)
+
+    # -------------------------
+    # printHeapPreOrder
+    # -------------------------
+    def printHeapPreOrder(self, i):
+        if i is None:
+            return
+        if i.isLeaf():
+            print("Leaf [", i.getKey(), i.getItem(), "]")
+        else:
+            print("Node [", i.getKey(), i.getItem(), "]")
+        self.printHeapPreOrder(i.getLeftChild())
+        self.printHeapPreOrder(i.getRightChild())
 
 
-def read_lines():
+# =========================
+# decimal to binary (yield)
+# =========================
+def d2by(x):
+    while x > 0:
+        x, r = divmod(x, 2)
+        yield r
+
+
+# =========================
+# Main function
+# =========================
+def HeapwithEntriesInserted():
+
+    h = Heap()
+
+    # ---- read input file ----
     with open("inFile.txt", "r") as f:
-        return [line.strip() for line in f.readlines()]
+        for line in f:
+            line = line.strip()
+            if line == "":
+                continue  # 跳過空白行
+            parts = line.split()
+            if len(parts) != 2:
+                print(f"跳過格式錯誤的行: {line}")
+                continue
+            key, item = parts
+            h.Insert(Hnode(int(key), item))
+
+    print("Heap size=", h.getSize(), "The highest priority is", h.getHighestPriority())
+    print("pre-order traversal:")
+    h.printHeapPreOrder(h.getRoot())
+
+    print("deleteMin")
+    h.removeMin()
+
+    print("deleteMin")
+    h.removeMin()
+
+    print("deleteMin")
+    h.removeMin()
+
+    print("deleteMin")
+    h.removeMin()
+
+    print("deleteMin")
+    h.removeMin()
+
+    print("insert 35, resume")
+    h.Insert(Hnode(35, "resume"))
+
+    print("insert 15, second")
+    h.Insert(Hnode(15, "second"))
+
+    print("insert 20, fourth")
+    h.Insert(Hnode(20, "fourth"))
+
+    print("Heap size=", h.getSize(), "The highest priority is", h.getHighestPriority())
+    print("pre-order traversal:")
+    h.printHeapPreOrder(h.getRoot())
+
+    print("deleteMin")
+    h.removeMin()
+
+    print("insert 40, nineth")
+    h.Insert(Hnode(40, "nineth"))
 
 
-def read_string(s):
-    poly = Poly_List()
-    # terms like +3x^2 -x +4
-    terms = re.findall(r"[+-]?\d*x\^\d+|[+-]?\d*x|[+-]?\d+", s)
-
-    for t in terms:
-        if 'x' not in t:
-            c = float(t)
-            exp = 0
-        else:
-            # coefficient
-            c = re.findall(r"[+-]?\d*", t)[0]
-            if c in ('', '+', '-'):
-                c = c + '1' if c != '' else '1'
-            c = float(c)
-            # exponent
-            if '^' in t:
-                exp = int(t.split('^')[1])
-            else:
-                exp = 1
-        poly.insertAtTail(c, exp)
-
-    return poly
-
-
-# === Operations ===
-def add(p1, p2):
-    r = Poly_List()
-    a = p1.copy().head
-    b = p2.copy().head
-
-    while a and b:
-        if a.exponential == b.exponential:
-            r.insertAtTail(a.coefficient + b.coefficient, a.exponential)
-            a = a.next
-            b = b.next
-        elif a.exponential > b.exponential:
-            r.insertAtTail(a.coefficient, a.exponential)
-            a = a.next
-        else:
-            r.insertAtTail(b.coefficient, b.exponential)
-            b = b.next
-
-    while a:
-        r.insertAtTail(a.coefficient, a.exponential)
-        a = a.next
-    while b:
-        r.insertAtTail(b.coefficient, b.exponential)
-        b = b.next
-
-    return r, None
-
-
-def substract(p1, p2):
-    r = Poly_List()
-    a = p1.copy().head
-    b = p2.copy().head
-
-    while a and b:
-        if a.exponential == b.exponential:
-            r.insertAtTail(a.coefficient - b.coefficient, a.exponential)
-            a = a.next
-            b = b.next
-        elif a.exponential > b.exponential:
-            r.insertAtTail(a.coefficient, a.exponential)
-            a = a.next
-        else:
-            r.insertAtTail(-b.coefficient, b.exponential)
-            b = b.next
-
-    while a:
-        r.insertAtTail(a.coefficient, a.exponential)
-        a = a.next
-    while b:
-        r.insertAtTail(-b.coefficient, b.exponential)
-        b = b.next
-
-    return r, None
-
-
-def multiply(p1, p2):
-    r = Poly_List()
-    a = p1.head
-
-    while a:
-        curPoly = Poly_List()
-        b = p2.head
-        while b:
-            curPoly.insertAtTail(a.coefficient * b.coefficient, a.exponential + b.exponential)
-            b = b.next
-        r, _ = add(r, curPoly)
-        a = a.next
-
-    return r, None
-
-
-def divide(p1, p2):
-    dividend = p1.copy()
-    divisor = p2.copy()
-    quotient = Poly_List()
-
-    while (not dividend.isEmpty()) and dividend.polyDegree() >= divisor.polyDegree():
-        leadA = dividend.getHead()
-        leadB = divisor.getHead()
-
-        c = leadA.coefficient / leadB.coefficient
-        exp = leadA.exponential - leadB.exponential
-
-        quotient.insertAtTail(c, exp)
-
-        temp = divisor.copy()
-        temp.timeConst_liftDegree(c, exp)
-
-        dividend, _ = substract(dividend, temp)
-        while dividend.head and dividend.head.coefficient == 0:
-            dividend.deleteAtHead()
-
-    return quotient, dividend
-
-
-def operation_selection(operation, poly1, poly2):
-    switcher = {
-        1: add,
-        2: substract,
-        3: multiply,
-        4: divide,
-    }
-    func = switcher.get(operation, lambda: "nothing")
-    return func(poly1, poly2)
-
-
-def poly_operation():
-    strings = read_lines()
-    operation = int(strings[0])
-    poly1 = read_string(strings[1])
-    poly2 = read_string(strings[2])
-
-    r1, r2 = operation_selection(operation, poly1, poly2)
-
-    if operation == 4:
-        print("The quotient is:", end="")
-        r1.printPolynomial()
-        print("The remainder is:", end="")
-        r2.printPolynomial()
-    else:
-        print("The result is:", end="")
-        r1.printPolynomial()
-if __name__ == "__main__":
-    poly_operation()
+HeapwithEntriesInserted()

@@ -13,6 +13,7 @@ host = "localhost"
 def index():
     conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host)
     cur = conn.cursor()
+    
     cur.execute('SELECT check_in_date, check_out_date, booker_name FROM "BookOrder"')
     data = cur.fetchall()
     cur.close()

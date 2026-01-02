@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Booking Search</title>
+</head>
+<body>
+
+<h2>Admin Booking Search</h2>
+
+<form method="POST" action="/admin/search">
+    Booking ID: <input type="text" name="booking_id"><br><br>
+    Guest Name: <input type="text" name="guest_name"><br><br>
+    Date From: <input type="date" name="date_from"><br><br>
+    Date To: <input type="date" name="date_to"><br><br>
+    <button type="submit">Search</button>
+</form>
+
+<hr>
+
+{% if results %}
+<h3>Search Results:</h3>
+<table border="1" cellpadding="8">
+    <tr>
+        <th>Booking ID</th>
+        <th>Room</th>
+        <th>Name</th>
+        <th>Phone</th>
+        <th>Check-in</th>
+        <th>Check-out</th>
+    </tr>
+
+    {% for row in results %}
+    <tr>
+        <td>{{ row[0] }}</td>
+        <td>{{ row[1] }}</td>
+        <td>{{ row[2] }}</td>
+        <td>{{ row[3] }}</td>
+        <td>{{ row[4] }}</td>
+        <td>{{ row[5] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% endif %}
+<form method="" action="/">
+    <button type="submit">Go User</button>
+</form>
+</body>
+</html>
